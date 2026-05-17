@@ -1,0 +1,621 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#FFD700;--black:#0a0a0a;--deep:#111;--panel:#1a1a1a;
+  --red:#CC0000;--cream:#F5F0E8;--teal:#008B8B;--green:#006400;
+}
+body{background:var(--black);color:var(--cream);font-family:'Trebuchet MS',sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,rgba(255,215,0,.04) 1px,transparent 1px);background-size:18px 18px;pointer-events:none;z-index:0}
+#app{position:relative;z-index:1}
+
+.title-bar{background:var(--black);border-bottom:4px solid var(--gold);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(255,215,0,.2)}
+.t1{font-size:1.5rem;font-weight:900;color:var(--gold);letter-spacing:3px;text-transform:uppercase;font-family:Impact,sans-serif;text-shadow:2px 2px 0 var(--red)}
+.t2{font-size:.75rem;color:rgba(255,215,0,.5);letter-spacing:4px;margin-top:2px}
+.star{width:36px;height:36px;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;transform:rotate(45deg);color:var(--gold);font-size:1rem}
+.star span{transform:rotate(-45deg);display:block}
+
+.nav{display:flex;border-bottom:3px solid var(--gold);background:var(--deep);overflow-x:auto}
+.ntab{font-family:Impact,sans-serif;font-size:1rem;letter-spacing:2px;padding:12px 22px;cursor:pointer;color:rgba(255,215,0,.5);background:transparent;border:none;border-right:1px solid rgba(255,215,0,.2);white-space:nowrap;transition:all .2s}
+.ntab:hover{color:var(--gold);background:rgba(255,215,0,.05)}
+.ntab.on{color:var(--black);background:var(--gold)}
+
+.layout{display:grid;grid-template-columns:1fr 360px;min-height:calc(100vh - 100px)}
+.main{padding:20px;overflow-y:auto}
+.side{border-left:3px solid var(--gold);display:flex;flex-direction:column;height:calc(100vh - 100px);position:sticky;top:100px}
+
+/* PANEL */
+.panel{border:2px solid var(--gold);background:var(--panel);position:relative;overflow:hidden;margin-bottom:16px}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--gold),var(--red))}
+.ph{font-family:Impact,sans-serif;font-size:.9rem;color:var(--gold);padding:8px 14px;border-bottom:1px solid rgba(255,215,0,.3);letter-spacing:2px;background:rgba(0,0,0,.5)}
+.pb{padding:14px}
+
+/* CARDS */
+.card{width:54px;height:76px;border:2px solid #888;border-radius:4px;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900;color:#111;box-shadow:2px 2px 0 rgba(255,215,0,.5);position:relative;flex-shrink:0}
+.card.r{color:var(--red)}
+.card.fd{background:repeating-linear-gradient(135deg,#1a1a2e 0 8px,#16213e 8px 16px);border-color:var(--gold)}
+.card .cr{position:absolute;top:2px;left:4px;font-size:.6rem;line-height:1.1;text-align:center}
+.card .cs{font-size:1.2rem;line-height:1}
+.card .ck{font-size:.95rem;line-height:1}
+
+/* TABLE */
+.table{background:radial-gradient(ellipse at center,#1a4a1a 0%,#0d2b0d 60%,#0a1f0a 100%);border:4px solid var(--gold);border-radius:14px;padding:18px;position:relative;margin-bottom:16px;box-shadow:inset 0 0 30px rgba(0,0,0,.5),0 0 15px rgba(255,215,0,.15)}
+.tlab{text-align:center;font-family:Impact,sans-serif;font-size:.65rem;color:rgba(255,215,0,.15);letter-spacing:8px;margin:4px 0}
+.community{display:flex;justify-content:center;gap:8px;margin:12px 0}
+.parea{display:flex;justify-content:space-between;align-items:flex-end}
+.plabel{font-family:Impact,sans-serif;font-size:.75rem;color:var(--gold);letter-spacing:2px;margin-bottom:5px}
+.phand{display:flex;gap:5px}
+.pot{text-align:center;font-family:Impact,sans-serif;font-size:.85rem;color:var(--gold)}
+
+/* STAGE BTNS */
+.stbtn{font-family:Impact,sans-serif;font-size:.8rem;padding:7px 14px;letter-spacing:1px;cursor:pointer;border:2px solid rgba(255,215,0,.3);color:rgba(255,215,0,.6);background:transparent;margin-right:6px;margin-bottom:8px;transition:all .15s}
+.stbtn:hover{border-color:var(--gold);color:var(--gold)}
+.stbtn.on{background:var(--gold);color:var(--black);border-color:var(--gold)}
+
+/* SECTION */
+.stitle{font-family:Impact,sans-serif;font-size:1.1rem;color:var(--gold);margin-bottom:14px;letter-spacing:2px;display:flex;align-items:center;gap:8px}
+.stitle::after{content:'';flex:1;height:2px;background:linear-gradient(90deg,var(--gold),transparent)}
+.badge{display:inline-block;padding:2px 7px;font-family:Impact,sans-serif;font-size:.7rem;letter-spacing:1px;border:1px solid;vertical-align:middle}
+.bg{border-color:var(--gold);color:var(--gold)}
+.br{border-color:var(--red);color:var(--red)}
+.bt{border-color:var(--teal);color:var(--teal)}
+
+/* HAND GRID */
+.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.hcard{border:2px solid rgba(255,215,0,.35);background:var(--panel);padding:14px;cursor:default;position:relative;overflow:hidden;transition:border-color .2s}
+.hcard:hover{border-color:var(--gold)}
+.hcard::after{content:attr(data-rank);position:absolute;top:6px;right:8px;font-family:Impact,sans-serif;font-size:2rem;color:rgba(255,215,0,.05)}
+.hname{font-family:Impact,sans-serif;font-size:1rem;color:var(--gold);margin-bottom:5px}
+.hdesc{font-size:.85rem;color:rgba(255,255,255,.7);line-height:1.4}
+.hex{display:flex;gap:4px;margin-top:10px}
+.mc{width:28px;height:40px;border:1.5px solid #888;border-radius:3px;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.65rem;font-weight:900;color:#111;flex-shrink:0}
+.mc.r{color:var(--red)}
+
+/* STAGES */
+.sbody{font-size:.9rem;line-height:1.65;color:rgba(255,255,255,.85);border:2px solid rgba(255,215,0,.2);padding:16px;background:var(--panel);margin-bottom:8px}
+.sbody strong{color:var(--gold)}
+.alist{list-style:none;margin-top:10px}
+.alist li{padding:8px 12px;border-left:3px solid var(--red);margin-bottom:6px;background:rgba(0,0,0,.3);font-size:.88rem;line-height:1.4}
+.alist li strong{color:var(--gold)}
+.sdiv{text-align:center;color:var(--gold);font-size:1rem;letter-spacing:6px;margin:16px 0;opacity:.4}
+
+/* STRATEGY */
+.pgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px}
+.pcard{border:2px solid rgba(255,215,0,.3);padding:12px;background:var(--panel);text-align:center}
+.pcard.best{border-color:var(--gold)}
+.pname{font-family:Impact,sans-serif;font-size:.95rem;color:var(--gold);margin-bottom:5px;letter-spacing:1px}
+.pdesc{font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.35}
+.tgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px}
+.tcard{padding:12px;border:2px solid;background:var(--panel)}
+
+/* CHAT */
+.jhead{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(0,0,0,.6);border-bottom:2px solid rgba(255,215,0,.3)}
+.jav{width:44px;height:44px;border:2px solid var(--gold);background:var(--black);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.jname{font-family:Impact,sans-serif;font-size:.95rem;color:var(--gold);letter-spacing:2px}
+.jtitle{font-size:.7rem;color:rgba(255,215,0,.5);letter-spacing:1px}
+.chat{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--deep)}
+.msg{max-width:92%;padding:10px 12px;border:2px solid;font-size:.88rem;line-height:1.5}
+.mj{border-color:var(--gold);background:rgba(255,215,0,.05);align-self:flex-start;border-left:4px solid var(--gold)}
+.mj::before{content:'JOTARO';font-family:Impact,sans-serif;font-size:.6rem;color:var(--gold);display:block;margin-bottom:5px;letter-spacing:2px}
+.mu{border-color:var(--teal);background:rgba(0,139,139,.08);align-self:flex-end;border-right:4px solid var(--teal)}
+.mu::before{content:'YOU';font-family:Impact,sans-serif;font-size:.6rem;color:var(--teal);display:block;margin-bottom:5px;letter-spacing:2px;text-align:right}
+.ml{border-color:rgba(255,215,0,.3);color:rgba(255,215,0,.5);font-style:italic;align-self:flex-start}
+.qbtns{padding:8px 10px;display:flex;flex-wrap:wrap;gap:5px;border-top:1px solid rgba(255,215,0,.15);background:rgba(0,0,0,.3)}
+.qb{font-family:Impact,sans-serif;font-size:.72rem;letter-spacing:.5px;padding:4px 8px;border:1px solid rgba(255,215,0,.4);background:transparent;color:rgba(255,215,0,.7);cursor:pointer;transition:all .15s}
+.qb:hover{border-color:var(--gold);color:var(--gold)}
+.cinput{flex:1;background:var(--panel);border:2px solid rgba(255,215,0,.4);color:var(--cream);padding:9px 12px;font-family:'Trebuchet MS',sans-serif;font-size:.92rem;outline:none}
+.cinput:focus{border-color:var(--gold)}
+.cinput::placeholder{color:rgba(255,215,0,.3)}
+.carea{padding:10px;border-top:2px solid rgba(255,215,0,.3);display:flex;gap:6px;background:var(--black)}
+.sbtn{background:var(--gold);color:var(--black);border:none;padding:9px 14px;font-family:Impact,sans-serif;font-size:.9rem;cursor:pointer;letter-spacing:1px;transition:all .15s}
+.sbtn:hover{background:#fff}
+.sbtn:disabled{opacity:.4;cursor:not-allowed}
+
+/* QUIZ */
+.qcard{border:3px solid var(--gold);padding:20px;background:var(--panel);margin-bottom:14px}
+.qq{font-family:Impact,sans-serif;font-size:1.1rem;letter-spacing:1px;color:var(--cream);margin-bottom:14px;line-height:1.3}
+.qopts{display:flex;flex-direction:column;gap:7px}
+.qopt{padding:11px 16px;border:2px solid rgba(255,215,0,.3);background:transparent;color:var(--cream);font-family:'Trebuchet MS',sans-serif;font-size:.9rem;cursor:pointer;text-align:left;transition:all .15s}
+.qopt:hover{border-color:var(--gold);background:rgba(255,215,0,.05)}
+.qopt.c{border-color:#00ff88;background:rgba(0,255,136,.1);color:#00ff88}
+.qopt.w{border-color:var(--red);background:rgba(204,0,0,.1);color:var(--red)}
+.qfb{margin-top:12px;padding:12px;border-left:4px solid var(--gold);background:rgba(255,215,0,.05);font-size:.88rem;line-height:1.5;color:rgba(255,255,255,.85)}
+.qfb strong{color:var(--gold)}
+.orabtn{font-family:Impact,sans-serif;font-size:.95rem;padding:11px 24px;background:var(--gold);color:var(--black);border:none;cursor:pointer;letter-spacing:2px;transition:all .15s;margin-top:10px;display:inline-block}
+.orabtn:hover{background:#fff}
+
+
+/* SIMULATOR */
+.simtop{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-bottom:14px}
+.simstat{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.simbox{border:2px solid rgba(255,215,0,.28);background:rgba(0,0,0,.28);padding:10px;text-align:center}
+.simlbl{font-family:Impact,sans-serif;font-size:.65rem;color:rgba(255,215,0,.55);letter-spacing:1px;margin-bottom:4px}.simval{font-family:Impact,sans-serif;font-size:1rem;color:var(--gold);letter-spacing:1px}
+.simtable{min-height:360px;display:flex;flex-direction:column;justify-content:space-between}.simrow{display:flex;align-items:center;justify-content:space-between;gap:10px}.simcenter{text-align:center}.simactions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.simnote{border-left:4px solid var(--gold);background:rgba(255,215,0,.05);padding:12px;font-size:.9rem;line-height:1.45;color:rgba(255,255,255,.85);min-height:64px}.simledger{max-height:225px;overflow:auto;border:2px solid rgba(255,215,0,.18);background:rgba(0,0,0,.25);padding:10px}.logline{font-size:.82rem;line-height:1.45;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.75)}.logline:first-child{color:var(--gold)}
+@media(max-width:980px){.layout{grid-template-columns:1fr}.side{position:relative;top:0;height:600px;border-left:0;border-top:3px solid var(--gold)}.simtop{grid-template-columns:1fr}.simstat{grid-template-columns:repeat(2,1fr)}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--black)}::-webkit-scrollbar-thumb{background:rgba(255,215,0,.4)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────
+const HANDS=[
+  {rank:1,name:"Royal Flush",desc:"The ultimate Stand! A-K-Q-J-10, all same suit. Practically unbeatable.",ex:[["A","♠",false],["K","♠",false],["Q","♠",false],["J","♠",false],["10","♠",false]]},
+  {rank:2,name:"Straight Flush",desc:"Five consecutive cards, same suit. Star Platinum level power.",ex:[["9","♥",true],["8","♥",true],["7","♥",true],["6","♥",true],["5","♥",true]]},
+  {rank:3,name:"Four of a Kind",desc:"Four of the same rank. Like using The World four times in a row.",ex:[["K","♠",false],["K","♥",true],["K","♦",true],["K","♣",false],["3","♠",false]]},
+  {rank:4,name:"Full House",desc:"Three of a kind + a pair. Yare yare, a powerful combo.",ex:[["Q","♠",false],["Q","♥",true],["Q","♦",true],["7","♣",false],["7","♥",true]]},
+  {rank:5,name:"Flush",desc:"Five cards of the same suit, not consecutive. ORA!",ex:[["A","♦",true],["J","♦",true],["8","♦",true],["5","♦",true],["2","♦",true]]},
+  {rank:6,name:"Straight",desc:"Five consecutive cards, mixed suits. Keep pushing forward.",ex:[["9","♠",false],["8","♥",true],["7","♣",false],["6","♦",true],["5","♠",false]]},
+  {rank:7,name:"Three of a Kind",desc:"Three of the same rank. Decent, but don't get cocky.",ex:[["J","♠",false],["J","♥",true],["J","♦",true],["8","♣",false],["3","♠",false]]},
+  {rank:8,name:"Two Pair",desc:"Two different pairs. Sometimes enough to win the pot.",ex:[["A","♠",false],["A","♥",true],["K","♦",true],["K","♣",false],["5","♠",false]]},
+  {rank:9,name:"One Pair",desc:"Two of the same rank. The most common hand you'll see.",ex:[["10","♠",false],["10","♥",true],["8","♦",true],["5","♣",false],["2","♠",false]]},
+  {rank:10,name:"High Card",desc:"No combination. Best single card plays. Jotaro would bluff here.",ex:[["A","♠",false],["J","♥",true],["8","♦",true],["6","♣",false],["2","♠",false]]},
+];
+const QUIZZES=[
+  {q:"Pre-flop, you have Ace-King. The flop comes Ace-7-2. What's your hand?",opts:["High Card","One Pair","Two Pair","Three of a Kind"],ans:1,fb:"<strong>One Pair</strong> — your Ace pairs with the board Ace. Your King acts as your kicker, which helps if someone else also has a pair of Aces."},
+  {q:"Board is K♠ K♦ K♥ 7♣ 7♦ and you hold no King or 7. What hand does the board make?",opts:["Full House","Four of a Kind","Three of a Kind","Two Pair"],ans:0,fb:"<strong>Full House</strong> — Kings full of Sevens, made entirely by the board. You'd 'play the board' with this hand."},
+  {q:"Pre-flop, what does it mean to 'raise'?",opts:["Match the current bet","Fold your cards","Increase the bet above the current amount","Check without betting"],ans:2,fb:"<strong>Raising</strong> means betting more than the current amount. This forces opponents to call your raise, re-raise, or fold. ORA ORA — take control!"},
+  {q:"You're in the Big Blind position. What happens before cards are dealt?",opts:["You bet nothing and wait","You must post a forced bet","You see your cards first","You fold automatically"],ans:1,fb:"The <strong>Big Blind</strong> posts a mandatory bet before cards are dealt. This creates action. Small Blind posts half that amount."},
+  {q:"What does 'check' mean in poker?",opts:["Fold your hand","Match the previous bet","Pass the action without betting","Look at an opponent's cards"],ans:2,fb:"<strong>Checking</strong> passes the action without betting. You can only check if no one has bet yet in that round. Yare yare, that's basic."},
+  {q:"You're 'on the button' (Dealer position). Is this a good spot?",opts:["Bad — you must bet first","Good — you act last post-flop","Neutral — position doesn't matter","Bad — you pay the most blinds"],ans:1,fb:"The <strong>Button</strong> is the strongest position! Acting last gives you maximum information on every post-flop street."},
+];
+const STAGES=[
+  {title:"Pre-Flop",badge:"STAGE 1",body:"<strong>The Deal:</strong> Every player gets <strong>2 private hole cards</strong> face down. Only you see yours.<br><br><strong>The Blinds:</strong> Two players left of the dealer post forced bets (Small Blind + Big Blind) to seed the pot.<br><br><strong>Betting Round 1</strong> — starting left of the Big Blind:",actions:[{n:"CALL",d:"Match the Big Blind to stay in the hand."},{n:"RAISE",d:"Increase above the Big Blind, forcing others to act."},{n:"FOLD",d:"Discard your hand. You're out of this round."},{n:"ALL-IN",d:"Bet every chip you have. Very dramatic. Very JoJo."}]},
+  {title:"The Flop",badge:"STAGE 2",body:"<strong>3 Community Cards</strong> are revealed face-up. Everyone can use these to build their best hand.<br><br>This is where your hand takes shape — do your hole cards connect with the board? Consider your outs:",actions:[{n:"TOP PAIR",d:"Your hole card pairs with the highest board card. Strong start."},{n:"DRAW",d:"Need 1-2 more cards to complete a flush or straight."},{n:"MISSED",d:"No connection. Consider bluffing or cutting losses."},{n:"SET / TRIPS",d:"Three of a kind! One of the best flop results."}]},
+  {title:"The Turn",badge:"STAGE 3",body:"<strong>1 more Community Card</strong> — the 4th board card. Now you see 4 of the 5 available cards.<br><br>Did your draw hit? Is the board getting scary for your hand? Pot sizes tend to grow here.<br><br><strong>Pot Odds:</strong> Compare call cost to pot size. Calling $10 into $100 = 10:1 odds. If your draw hits ~1-in-5 times, that's a profitable call long-term.",actions:[{n:"BET HALF POT",d:"Build the pot or test your opponent's strength."},{n:"BET FULL POT",d:"Large bet to deny equity to drawing hands."},{n:"CHECK-RAISE",d:"Check first, raise when they bet. Sneaky and effective."},{n:"CHECK-FOLD",d:"Show weakness, then fold to aggression. Cut losses."}]},
+  {title:"The River",badge:"STAGE 4",body:"<strong>The 5th and final Community Card.</strong> No more cards coming — you either have it or you don't.<br><br>This is peak poker psychology. Value bet strong hands. Bluff weak ones only if the story is believable.<br><br><strong>Showdown:</strong> If multiple players remain after betting, everyone reveals cards. Best 5-card hand wins the pot!",actions:[{n:"VALUE BET",d:"Strong hand — extract chips from worse hands."},{n:"BLUFF",d:"Missed? Can you make them fold a better hand?"},{n:"CHECK-CALL",d:"Medium hand — pot control, call their bets."},{n:"MUCK",d:"Fold without showing. Protect your strategy."}]},
+];
+const SYSTEM=`You are Jotaro Kujo from JoJo's Bizarre Adventure, teaching Texas Hold'em poker. Personality: laconic, cool, slightly annoyed but helpful. "Yare yare daze..." Use JoJo references — Stand abilities as poker metaphors, "ORA ORA ORA!" for emphasis, mention Dio, The World, Star Platinum. Short punchy sentences. Expert poker knowledge. Occasionally say "Good grief", "I, Jotaro Kujo, will not allow it." Make concepts click with Stand battle analogies. Keep responses under 180 words. Use **bold** for key poker terms.`;
+
+// ─── STATE ───────────────────────────────────────────────────────────
+let state={tab:0,stage:1,msgs:[{r:"j",t:"...Yare yare daze. You want to learn poker? Fine. I, Jotaro Kujo, will teach you Texas Hold'em. Ask me anything — rules, strategy, hand rankings. Don't waste my time with stupid questions."}],input:"",loading:false,qidx:0,qsel:null,qscore:0,qdone:false,sim:null};
+
+function set(patch){state={...state,...patch};render()}
+
+// ─── UTILS ───────────────────────────────────────────────────────────
+function Card(rank,suit,red,fd){
+  const d=document.createElement('div');
+  d.className='card'+(red?' r':'')+(fd?' fd':'');
+  if(!fd){
+    const cr=document.createElement('div');cr.className='cr';cr.innerHTML=rank+'<br>'+suit;
+    const ck=document.createElement('div');ck.className='ck';ck.textContent=rank;
+    const cs=document.createElement('div');cs.className='cs';cs.textContent=suit;
+    d.append(cr,ck,cs);
+  }
+  return d;
+}
+function MiniCard(rank,suit,red){
+  const d=document.createElement('div');d.className='mc'+(red?' r':'');
+  d.innerHTML='<div>'+rank+'</div><div>'+suit+'</div>';return d;
+}
+function el(tag,cls,html){const d=document.createElement(tag);if(cls)d.className=cls;if(html!==undefined)d.innerHTML=html;return d;}
+function btn(cls,txt,onclick){const b=el('button',cls,txt);b.onclick=onclick;return b;}
+
+
+// ─── PLAYABLE SIMULATOR ──────────────────────────────────────────────
+const SUITS=['♠','♥','♦','♣'];
+const RANKS=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+const RVAL=Object.fromEntries(RANKS.map((r,i)=>[r,i+2]));
+const HNAMES=['High Card','One Pair','Two Pair','Three of a Kind','Straight','Flush','Full House','Four of a Kind','Straight Flush','Royal Flush'];
+function isRedSuit(s){return s==='♥'||s==='♦'}
+function makeDeck(){let d=[];SUITS.forEach(s=>RANKS.forEach(r=>d.push({r,s,v:RVAL[r],red:isRedSuit(s)})));return d.sort(()=>Math.random()-.5)}
+function cmpArr(a,b){for(let i=0;i<Math.max(a.length,b.length);i++){const x=a[i]||0,y=b[i]||0;if(x!==y)return x-y}return 0}
+function evalHand(cards){
+  const vals=[...new Set(cards.map(c=>c.v))].sort((a,b)=>b-a); if(vals.includes(14)) vals.push(1);
+  const bySuit={}; cards.forEach(c=>(bySuit[c.s]??=[]).push(c));
+  const straightHigh=(vs)=>{const u=[...new Set(vs)].sort((a,b)=>b-a); if(u.includes(14))u.push(1); for(let i=0;i<=u.length-5;i++){let ok=true;for(let j=1;j<5;j++)if(u[i+j]!==u[i]-j)ok=false;if(ok)return u[i]} return 0};
+  let sf=0; Object.values(bySuit).forEach(list=>{if(list.length>=5)sf=Math.max(sf,straightHigh(list.map(c=>c.v)))});
+  if(sf) return {cat:sf===14?9:8,name:sf===14?'Royal Flush':'Straight Flush',score:[sf]};
+  const counts={}; cards.forEach(c=>counts[c.v]=(counts[c.v]||0)+1);
+  const groups=Object.entries(counts).map(([v,c])=>({v:+v,c})).sort((a,b)=>b.c-a.c||b.v-a.v);
+  const four=groups.find(g=>g.c===4); if(four)return{cat:7,name:'Four of a Kind',score:[four.v,...vals.filter(v=>v!==four.v).slice(0,1)]};
+  const trips=groups.filter(g=>g.c===3).map(g=>g.v); const pairs=groups.filter(g=>g.c===2).map(g=>g.v);
+  if(trips.length && (pairs.length||trips.length>1)){const t=trips[0],p=trips.length>1?trips[1]:pairs[0];return{cat:6,name:'Full House',score:[t,p]};}
+  let flush=null; Object.values(bySuit).forEach(list=>{if(list.length>=5){const fv=list.map(c=>c.v).sort((a,b)=>b-a).slice(0,5); if(!flush||cmpArr(fv,flush)>0)flush=fv;}}); if(flush)return{cat:5,name:'Flush',score:flush};
+  const st=straightHigh(cards.map(c=>c.v)); if(st)return{cat:4,name:'Straight',score:[st]};
+  if(trips.length){const t=trips[0];return{cat:3,name:'Three of a Kind',score:[t,...vals.filter(v=>v!==t).slice(0,2)]};}
+  if(pairs.length>=2){const ps=pairs.slice(0,2);return{cat:2,name:'Two Pair',score:[...ps,...vals.filter(v=>!ps.includes(v)).slice(0,1)]};}
+  if(pairs.length){const p=pairs[0];return{cat:1,name:'One Pair',score:[p,...vals.filter(v=>v!==p).slice(0,3)]};}
+  return{cat:0,name:'High Card',score:vals.slice(0,5)};
+}
+function compareHands(a,b){if(a.cat!==b.cat)return a.cat-b.cat; return cmpArr(a.score,b.score)}
+function simNewHand(chipsP=1000,chipsO=1000){
+  const deck=makeDeck(); const player=[deck.pop(),deck.pop()],opp=[deck.pop(),deck.pop()],board=[];
+  return {deck,player,opp,board,street:'preflop',pot:30,playerChips:chipsP-10,oppChips:chipsO-20,currentBet:20,playerPut:10,oppPut:20,toCall:10,ended:false,reveal:false,winner:null,message:'Small blind posted 10. Opponent posted big blind 20. Your move, Joestar.',log:['New hand started. You are small blind.']};
+}
+function ensureSim(){if(!state.sim)state.sim=simNewHand();return state.sim}
+function simAdvance(sim){
+  sim.playerPut=0; sim.oppPut=0; sim.currentBet=0; sim.toCall=0;
+  if(sim.street==='preflop'){sim.board.push(sim.deck.pop(),sim.deck.pop(),sim.deck.pop());sim.street='flop';sim.message='The flop hits the table. Read the board like Jotaro reads DIO.';sim.log.unshift('Flop dealt.');}
+  else if(sim.street==='flop'){sim.board.push(sim.deck.pop());sim.street='turn';sim.message='Turn card. One more chance for fate to ORA ORA your hand.';sim.log.unshift('Turn dealt.');}
+  else if(sim.street==='turn'){sim.board.push(sim.deck.pop());sim.street='river';sim.message='River card. No more draws. Time stops here.';sim.log.unshift('River dealt.');}
+  else simShowdown(sim);
+}
+function oppDecision(sim,playerBet=0){
+  const strength=evalHand([...sim.opp,...sim.board]).cat + Math.random()*1.5;
+  if(playerBet>0){
+    if(strength<1.15 && Math.random()<.55){sim.ended=true;sim.reveal=false;sim.winner='player';sim.playerChips+=sim.pot;sim.message='Opponent folds. You drag the pot. Yare yare daze.';sim.log.unshift('Opponent folded. You win '+sim.pot+'.');return;}
+    const call=Math.min(playerBet,sim.oppChips);sim.oppChips-=call;sim.oppPut+=call;sim.pot+=call;sim.log.unshift('Opponent calls '+call+'.');simAdvance(sim);return;
+  }
+  if(strength>=2.4 && sim.oppChips>=40 && Math.random()<.42){const bet=Math.min(50,sim.oppChips);sim.oppChips-=bet;sim.oppPut+=bet;sim.currentBet=bet;sim.toCall=bet;sim.pot+=bet;sim.message='Opponent bets 50. Dio is applying pressure.';sim.log.unshift('Opponent bets '+bet+'.');return;}
+  sim.log.unshift('Opponent checks.');simAdvance(sim);
+}
+function simShowdown(sim){
+  sim.ended=true;sim.reveal=true;const ph=evalHand([...sim.player,...sim.board]),oh=evalHand([...sim.opp,...sim.board]);const c=compareHands(ph,oh);
+  if(c>0){sim.winner='player';sim.playerChips+=sim.pot;sim.message='Showdown: You win with '+ph.name+' against '+oh.name+'. ORA ORA ORA!';}
+  else if(c<0){sim.winner='opp';sim.oppChips+=sim.pot;sim.message='Showdown: Opponent wins with '+oh.name+' against your '+ph.name+'. Good grief.';}
+  else {sim.winner='tie';sim.playerChips+=Math.floor(sim.pot/2);sim.oppChips+=Math.ceil(sim.pot/2);sim.message='Showdown: Split pot. Both players show '+ph.name+'.';}
+  sim.log.unshift(sim.message);
+}
+function simAct(action){
+  const sim=ensureSim(); if(sim.ended){state.sim=simNewHand(sim.playerChips,sim.oppChips);render();return;}
+  if(action==='fold'){sim.ended=true;sim.winner='opp';sim.oppChips+=sim.pot;sim.message='You folded. Opponent wins the pot. Strategic retreat, not defeat.';sim.log.unshift('You folded.');render();return;}
+  if(action==='call'){const call=Math.min(sim.toCall,sim.playerChips);sim.playerChips-=call;sim.playerPut+=call;sim.pot+=call;sim.log.unshift((call?'You call '+call+'.':'You check.'));oppDecision(sim,0);render();return;}
+  if(action==='bet'){const bet=Math.min(sim.toCall+50,sim.playerChips);sim.playerChips-=bet;sim.playerPut+=bet;sim.pot+=bet;sim.log.unshift(sim.toCall?'You raise to '+bet+'.':'You bet 50.');oppDecision(sim,bet-sim.toCall);render();return;}
+  if(action==='allin'){const bet=sim.playerChips;sim.playerChips=0;sim.playerPut+=bet;sim.pot+=bet;sim.log.unshift('You go ALL-IN for '+bet+'.');oppDecision(sim,Math.max(0,bet-sim.toCall));render();return;}
+}
+function renderSimulator(){
+  const sim=ensureSim(); const wrap=el('div');
+  wrap.append(el('div','stitle','✦ Fully Playable Hold’em Simulator'));
+  const top=el('div','simtop'); const left=el('div','table simtable');
+  const oppRow=el('div','simrow'); const oppInfo=el('div');oppInfo.innerHTML='<div class="plabel">DIO / OPPONENT</div><div style="font-size:.8rem;color:rgba(255,255,255,.6)">Chips: '+sim.oppChips+'</div>'; const oppCards=el('div','phand');sim.opp.forEach(c=>oppCards.append(Card(c.r,c.s,c.red,!sim.reveal)));oppRow.append(oppInfo,oppCards); left.append(oppRow);
+  const center=el('div','simcenter'); center.append(el('div','tlab','PLAYABLE TEXAS HOLD\'EM')); const comm=el('div','community'); sim.board.forEach(c=>comm.append(Card(c.r,c.s,c.red,false))); for(let i=sim.board.length;i<5;i++)comm.append(Card('','',false,true)); center.append(comm); center.append(el('div','pot','POT: '+sim.pot+' chips')); left.append(center);
+  const me=el('div','simrow'); const myCards=el('div','phand');sim.player.forEach(c=>myCards.append(Card(c.r,c.s,c.red,false))); const myInfo=el('div'); const hand=evalHand([...sim.player,...sim.board]); myInfo.innerHTML='<div class="plabel" style="color:#00ff88">YOU / JOTARO</div><div style="font-size:.8rem;color:rgba(255,255,255,.6)">Chips: '+sim.playerChips+' • Current: '+hand.name+'</div>'; me.append(myCards,myInfo); left.append(me); top.append(left);
+  const right=el('div','panel'); right.innerHTML='<div class="ph">GAME STATUS</div>'; const rb=el('div','pb'); const stats=el('div','simstat'); [['Street',sim.street.toUpperCase()],['To Call',sim.toCall],['Pot',sim.pot],['Result',sim.ended?(sim.winner||'Done'):'Live']].forEach(([l,v])=>{const b=el('div','simbox','<div class="simlbl">'+l+'</div><div class="simval">'+v+'</div>');stats.append(b)}); rb.append(stats); rb.append(el('div','simnote',sim.message)); const acts=el('div','simactions'); if(sim.ended){acts.append(btn('orabtn','NEW HAND',()=>simAct('new')))} else {acts.append(btn('stbtn on',sim.toCall?'CALL '+sim.toCall:'CHECK',()=>simAct('call')));acts.append(btn('stbtn','BET / RAISE 50',()=>simAct('bet')));acts.append(btn('stbtn','FOLD',()=>simAct('fold')));acts.append(btn('stbtn','ALL-IN',()=>simAct('allin')))} rb.append(acts); const led=el('div','simledger'); sim.log.slice(0,18).forEach(x=>led.append(el('div','logline',x))); rb.append(led); right.append(rb); top.append(right); wrap.append(top);
+  const tip=el('div','sbody','<strong>How to play:</strong> Use Check/Call, Bet/Raise, Fold, or All-In. The opponent makes simple AI decisions based on hand strength. Win chips across hands, reach showdown, and learn by seeing your current best hand update in real time.'); wrap.append(tip);
+  return wrap;
+}
+
+// ─── OFFLINE JOTARO POKER COACH ─────────────────────────────────────
+// The old version tried to call Anthropic directly from browser JavaScript.
+// Static pages cannot safely do that without a server/proxy, so this local coach
+// keeps the right-side Jotaro panel working anywhere: downloaded file, CodePen,
+// GitHub Pages, or a classroom computer with no backend.
+function escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function fmtMsg(t){
+  return escapeHtml(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+}
+function txtCard(c){return c.r+c.s}
+function rankLabel(v){return ({14:'Ace',13:'King',12:'Queen',11:'Jack'}[v]||String(v))}
+function hasFlushDraw(cards){
+  const bySuit={}; cards.forEach(c=>bySuit[c.s]=(bySuit[c.s]||0)+1);
+  return Object.entries(bySuit).filter(([s,n])=>n===4).map(([s])=>s);
+}
+function straightDrawHighs(cards){
+  const vals=[...new Set(cards.map(c=>c.v))]; if(vals.includes(14))vals.push(1);
+  const have=new Set(vals); const draws=[];
+  for(let low=1;low<=10;low++){
+    const seq=[low,low+1,low+2,low+3,low+4];
+    const hits=seq.filter(v=>have.has(v)).length;
+    if(hits===4)draws.push(seq[4]===14?'A-high':rankLabel(seq[4])+'-high');
+  }
+  return [...new Set(draws)];
+}
+function currentSimAdvice(){
+  const sim=state.sim;
+  if(!sim){
+    return "...Yare yare. Open the **SIMULATOR** tab and play a hand. Then ask me **what should I do now?** and I'll read the spot like Star Platinum reading DIO's timing.";
+  }
+  const all=[...sim.player,...sim.board];
+  const h=evalHand(all);
+  const board=sim.board.length?sim.board.map(txtCard).join(' '):'no board yet';
+  const hole=sim.player.map(txtCard).join(' ');
+  const fds=hasFlushDraw(all);
+  const sds=straightDrawHighs(all);
+  const drawBits=[];
+  if(fds.length)drawBits.push('a **flush draw**');
+  if(sds.length)drawBits.push('a **straight draw**');
+  const draws=drawBits.length?' You also have '+drawBits.join(' and ')+'.':'';
+
+  let advice='';
+  if(sim.ended){
+    advice='The hand is over. Press **NEW HAND**. Review the showdown, then move on. Good grief, no point fighting yesterday.';
+  }else if(h.cat>=5){
+    advice=sim.toCall?`You have real power: **${h.name}**. Calling is fine, but raising applies Star Platinum pressure.`:`You have **${h.name}**. Bet for value. Make worse hands pay to see the next card.`;
+  }else if(h.cat>=3){
+    advice=sim.toCall?`With **${h.name}**, continue. Call smaller bets; raise if DIO is getting reckless.`:`Bet. **${h.name}** is strong enough to build the pot and deny free cards.`;
+  }else if(h.cat===2){
+    advice=sim.toCall?`**Two Pair** is strong. Call most normal bets. Raise if the board is draw-heavy.`:`Bet for value. Two Pair wants chips before scary cards arrive.`;
+  }else if(h.cat===1){
+    advice=sim.toCall?`One pair is medium strength. Call small bets; fold to huge pressure unless you have a strong kicker or draw.`:`Check is safe. Betting is okay if your pair is top pair or DIO has shown weakness.`;
+  }else if(drawBits.length){
+    advice=sim.toCall?`You are drawing. Call only if the price is good. Pot is **${sim.pot}**, call is **${sim.toCall}**. Don't chase like Polnareff.`:`Check or semi-bluff. A semi-bluff can win now or improve later. ORA.`;
+  }else{
+    advice=sim.toCall?`High-card air. Fold to pressure unless the bet is tiny. I, Jotaro Kujo, will not allow spewing chips.`:`Check. Take the free card. Bluff only if the story makes sense.`;
+  }
+  return `...Yare yare. Current simulator read:\n\nHole cards: **${hole}**. Board: **${board}**. Pot: **${sim.pot}**. To call: **${sim.toCall}**.\n\nYour current best hand is **${h.name}**.${draws}\n\n${advice}`;
+}
+function jotaroReply(text){
+  const q=String(text).toLowerCase();
+  const has=(...words)=>words.some(w=>q.includes(w));
+
+  if(has('what should i do','what do i do','advice','coach','current hand','my hand','simulator','play now','should i call','should i bet','should i fold','now?')) return currentSimAdvice();
+  if(has('starting','start hand','starting hand','preflop','pre-flop','pocket','ace king','ak','good hands')){
+    return "**Starting hands** are your opening Stand ability. Premiums: **AA, KK, QQ, JJ, AK suited**. Play them hard. Medium hands like **99, AQ, KQ, suited connectors** depend on position. Trash like **7-2 offsuit** goes straight to the graveyard. Yare yare... don't marry bad cards.";
+  }
+  if(has('pot odds','odds','outs','draw')){
+    return "**Pot odds** ask one thing: is the price worth the risk? If the pot is 100 and calling costs 20, you risk 20 to win 120 — about **16.7%** needed. Count your **outs**. Flush draw after the flop has about **9 outs** and roughly **36%** to hit by the river. If the math is better than the price, call. Star Platinum doesn't guess. It calculates.";
+  }
+  if(has('bluff','bluffing','semi bluff','semi-bluff')){
+    return "A **bluff** needs a believable story. If you raised pre-flop, bet an Ace-high flop, and fire again on the turn, that story can work. Random button-mashing is not bluffing. It's losing. Best bluff: the **semi-bluff** — you might make them fold now, but you still have outs if called. ORA ORA.";
+  }
+  if(has('position','button','dealer','late position','early position')){
+    return "**Position** is information. On the **button**, you act last after the flop, so you see everyone move before you decide. That's Star Platinum-level reaction time. Early position is weaker because you act blind. Play tighter early, wider late. Good grief, position wins chips quietly.";
+  }
+  if(has('blind','blinds','small blind','big blind')){
+    return "The **small blind** and **big blind** are forced bets before the cards are dealt. They create action. Small blind posts half, big blind posts full. Pre-flop, action starts left of the big blind. After the flop, the small blind side acts first. Remember that, or DIO takes your chips.";
+  }
+  if(has('rank','ranking','hands','royal','flush','straight','full house','pair','two pair','three of a kind','four of a kind')){
+    return "Hand order, strongest to weakest: **Royal Flush**, **Straight Flush**, **Four of a Kind**, **Full House**, **Flush**, **Straight**, **Three of a Kind**, **Two Pair**, **One Pair**, **High Card**. Same category? Compare kickers. Like Stand battles, small details decide the winner.";
+  }
+  if(has('read','tell','opponent','dio','timing')){
+    return "Read opponents through patterns, not magic. Big sudden bets can mean strength or fear. Fast checks often mean weakness. Tiny bets may be blockers. Track what they showed down before. One hand is noise. A pattern is a Stand ability revealed.";
+  }
+  if(has('call','raise','bet','fold','check','all in','all-in')){
+    return "Actions: **check** means pass when no bet faces you. **Bet** puts chips in first. **Call** matches a bet. **Raise** increases it. **Fold** surrenders the hand. **All-in** commits every chip. Simple words. Brutal consequences. Yare yare daze.";
+  }
+  if(has('hello','hi','hey','help')){
+    return "...Yare yare. Ask me about **starting hands**, **pot odds**, **position**, **bluffing**, **hand rankings**, or the **simulator**. If you're in a hand, ask: **what should I do now?**";
+  }
+  return "Good grief. Give me the poker situation: your two cards, the board, pot size, and bet to call. Or ask about **hand rankings**, **pot odds**, **position**, **bluffing**, or the **simulator**. Then I can answer cleanly.";
+}
+function sendMsg(text){
+  if(!text.trim()||state.loading)return;
+  const newMsgs=[...state.msgs,{r:'u',t:text}];
+  set({msgs:[...newMsgs,{r:'l',t:'Jotaro is thinking...'}],input:'',loading:true});
+  setTimeout(()=>{
+    const reply=jotaroReply(text);
+    set({msgs:[...newMsgs,{r:'j',t:reply}],loading:false});
+  },180);
+}
+
+// ─── RENDER FNS ──────────────────────────────────────────────────────
+function renderHands(){
+  const wrap=el('div');
+  const st=el('div','stitle','✦ Hand Rankings — Best to Worst');wrap.append(st);
+  const g=el('div','hgrid');
+  HANDS.forEach(h=>{
+    const c=el('div','hcard');c.setAttribute('data-rank','#'+h.rank);
+    const top=el('div',null);top.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px';
+    const nm=el('div','hname',h.name);
+    const bk=el('span','badge br','#'+h.rank);
+    top.append(nm,bk);
+    const desc=el('div','hdesc',h.desc);
+    const hex=el('div','hex');
+    h.ex.forEach(([r,s,red])=>hex.append(MiniCard(r,s,red)));
+    c.append(top,desc,hex);g.append(c);
+  });
+  wrap.append(g);return wrap;
+}
+
+function renderStages(){
+  const wrap=el('div');
+  const st=el('div','stitle','✦ How a Hand is Played');wrap.append(st);
+
+  // Table
+  const table=el('div','table');
+  const opp=el('div','parea',null);opp.style.marginBottom='12px';
+  const oppL=el('div');const ol=el('div','plabel','OPPONENT');const oh=el('div','phand');
+  oh.append(Card('','',false,true),Card('','',false,true));oppL.append(ol,oh);
+  const oppR=el('div','plabel',null);oppR.textContent='CHIPS: 980';oppR.style.color='var(--teal)';
+  opp.append(oppL,oppR);
+  const tlab=el('div','tlab','TEXAS HOLD\'EM');
+  const comm=el('div','community');
+  const potEl=el('div','pot','POT: 0');
+  const myArea=el('div','parea');
+  const myL=el('div');const ml=el('div','plabel','YOUR HAND');ml.style.color='#00ff88';
+  const mh=el('div','phand');mh.append(Card('A','♣',false,false),Card('K','♥',true,false));myL.append(ml,mh);
+  const myR=el('div','plabel','CHIPS: 1000');myR.style.color='var(--teal)';
+  myArea.append(myL,myR);
+  table.append(opp,tlab,comm,potEl,myArea);wrap.append(table);
+
+  // Stage buttons
+  const btns=el('div');
+  const stNames=['PRE-FLOP','FLOP','TURN','RIVER'];
+  const community=[[],[{r:'A',s:'♠',red:false},{r:'7',s:'♥',red:true},{r:'2',s:'♦',red:true}],[{r:'A',s:'♠',red:false},{r:'7',s:'♥',red:true},{r:'2',s:'♦',red:true},{r:'K',s:'♠',red:false}],[{r:'A',s:'♠',red:false},{r:'7',s:'♥',red:true},{r:'2',s:'♦',red:true},{r:'K',s:'♠',red:false},{r:'9',s:'♣',red:false}]];
+  const pots=[0,120,160,200];
+
+  function updateTable(i){
+    comm.innerHTML='';
+    const shown=community[i];const hidden=5-shown.length;
+    shown.forEach(c=>comm.append(Card(c.r,c.s,c.red,false)));
+    for(let j=0;j<hidden;j++)comm.append(Card('','',false,true));
+    potEl.textContent='POT: '+pots[i]+' chips';
+  }
+  updateTable(0);
+
+  stNames.forEach((n,i)=>{
+    const b=el('button','stbtn'+(state.stage===i+1?' on':''),n);
+    b.onclick=()=>{set({stage:i+1});updateTable(i);};
+    btns.append(b);
+  });
+  wrap.append(btns);
+
+  // Stage info
+  STAGES.forEach((s,i)=>{
+    const sec=el('div');sec.style.marginBottom='20px';
+    const title=el('div','stitle',null);
+    title.innerHTML='<span class="badge br">'+s.badge+'</span>&nbsp; '+s.title;
+    const body=el('div','sbody');body.innerHTML=s.body;
+    const ul=el('ul','alist');
+    s.actions.forEach(a=>{const li=el('li','','<strong>'+a.n+':</strong> '+a.d);ul.append(li);});
+    body.append(ul);sec.append(title,body);
+    if(i<STAGES.length-1){const div=el('div','sdiv','★  ★  ★');sec.append(div);}
+    wrap.append(sec);
+  });
+  return wrap;
+}
+
+function renderStrategy(){
+  const wrap=el('div');
+  const s1=el('div','stitle','✦ Position — The Secret Weapon');wrap.append(s1);
+  const pg=el('div','pgrid');
+  [{n:'Early Position',d:'Act first post-flop. Weakest spot. Play only premium hands.',best:false},
+   {n:'Middle Position',d:'Moderate info. More hands viable but stay selective.',best:false},
+   {n:'★ The Button',d:'ACT LAST post-flop. Maximum information. This is Star Platinum.',best:true}].forEach(p=>{
+    const c=el('div','pcard'+(p.best?' best':''));
+    c.innerHTML='<div class="pname">'+p.n+'</div><div class="pdesc">'+p.d+'</div>';pg.append(c);
+  });
+  wrap.append(pg);
+
+  const sdiv=el('div','sdiv','★  ★  ★');wrap.append(sdiv);
+  const s2=el('div','stitle','✦ Starting Hand Guide');wrap.append(s2);
+  const tg=el('div','tgrid');
+  [{t:'PLAY ALWAYS',col:'#00ff88',hs:['A-A (Pocket Rockets)','K-K (Cowboys)','Q-Q (Ladies)','A-K suited','J-J','A-Q suited']},
+   {t:'SITUATIONAL',col:'var(--gold)',hs:['10-10, 9-9','A-J, K-Q','A-10 suited','K-J suited','Suited connectors','Small pairs (late)']},
+   {t:'USUALLY FOLD',col:'var(--red)',hs:['Random low cards','Offsuit trash','7-2 (worst hand)','One-gap junk','Weak aces']},
+  ].forEach(t=>{
+    const c=el('div','tcard');c.style.borderColor=t.col;
+    const h=el('div');h.style.cssText='font-family:Impact,sans-serif;font-size:.75rem;letter-spacing:1px;margin-bottom:8px;color:'+t.col;h.textContent=t.t;
+    c.append(h);t.hs.forEach(hand=>{const r=el('div','',hand);r.style.cssText='font-size:.82rem;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.8)';c.append(r);});
+    tg.append(c);
+  });
+  wrap.append(tg);
+
+  const sdiv2=el('div','sdiv','★  ★  ★');wrap.append(sdiv2);
+  const s3=el('div','stitle','✦ Core Poker Concepts');wrap.append(s3);
+  [{icon:'📊',t:'POT ODDS',b:'Compare call cost to pot size. Pot is $100, call is $10 = 10:1 odds. If your draw hits 1-in-5 times (4:1), calling is profitable long-term. Star Platinum calculates this instinctively.'},
+   {icon:'🎭',t:'BLUFFING',b:'A good bluff tells a believable story. Bluff when the board texture supports it, you\'ve been playing tight, and your opponent looks weak. Semi-bluffs (you have a draw) are the safest bluffs.'},
+   {icon:'👁️',t:'READING OPPONENTS',b:"Watch bet sizes and timing. A sudden overbet often means strength OR a bluff — context matters. Players who quickly check are often weak. Build reads over multiple hands, like Jotaro observing DIO's Stand ability."},
+  ].forEach(c=>{
+    const d=el('div','sbody');
+    d.innerHTML='<div style="font-family:Impact,sans-serif;font-size:1rem;color:var(--gold);margin-bottom:7px;letter-spacing:2px">'+c.icon+' '+c.t+'</div>'+c.b;
+    d.style.marginBottom='12px';wrap.append(d);
+  });
+  return wrap;
+}
+
+function renderQuiz(){
+  const wrap=el('div');
+  if(state.qdone){
+    const s=state.qscore;const total=QUIZZES.length;
+    wrap.innerHTML='<div style="text-align:center;padding:30px 10px">'
+      +'<div style="font-family:Impact,sans-serif;font-size:2rem;color:var(--gold);margin-bottom:12px">RESULT</div>'
+      +'<div style="font-family:Impact,sans-serif;font-size:3.5rem;line-height:1;color:'+(s>=5?'#00ff88':s>=3?'var(--gold)':'var(--red)')+'">'+s+' / '+total+'</div>'
+      +'<div style="margin-top:14px;font-size:.95rem;color:rgba(255,255,255,.7);max-width:380px;margin:14px auto">'
+      +(s===total?'...Perfect. Good grief, maybe you don\'t need me after all. — Jotaro':s>=4?'Yare yare. Not bad. You have the basics down.':s>=2?'You need more practice. Review the lessons.':'...Even Polnareff did better. Review EVERYTHING.')
+      +'</div></div>';
+    const rb=el('button','orabtn','TRY AGAIN — ORA!');rb.onclick=()=>set({qdone:false,qidx:0,qsel:null,qscore:0});
+    wrap.append(rb);return wrap;
+  }
+  const q=QUIZZES[state.qidx];
+  const hd=el('div',null,null);hd.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:14px';
+  const ht=el('div','stitle','✦ Knowledge Quiz');ht.style.margin='0';
+  const hs=el('div',null,null);hs.style.cssText='font-family:Impact,sans-serif;font-size:.85rem;color:var(--gold)';
+  hs.textContent=(state.qidx+1)+' / '+QUIZZES.length+' — Score: '+state.qscore;
+  hd.append(ht,hs);wrap.append(hd);
+  const qc=el('div','qcard');
+  const qq=el('div','qq',q.q);qc.append(qq);
+  const opts=el('div','qopts');
+  q.opts.forEach((o,i)=>{
+    const ob=el('button','qopt'+(state.qsel!==null?(i===q.ans?' c':state.qsel===i?' w':''):''),'<span style="font-family:Impact,sans-serif;margin-right:8px;font-size:.75rem">'+['A','B','C','D'][i]+'.</span>'+o);
+    ob.onclick=()=>{if(state.qsel!==null)return;const correct=i===q.ans;set({qsel:i,qscore:state.qscore+(correct?1:0)});};
+    opts.append(ob);
+  });
+  qc.append(opts);
+  if(state.qsel!==null){
+    const fb=el('div','qfb');fb.innerHTML=q.fb;qc.append(fb);
+  }
+  wrap.append(qc);
+  if(state.qsel!==null){
+    const nb=el('button','orabtn',state.qidx<QUIZZES.length-1?'NEXT — ORA!':'SEE RESULTS — ORA ORA ORA!');
+    nb.onclick=()=>{if(state.qidx<QUIZZES.length-1)set({qidx:state.qidx+1,qsel:null});else set({qdone:true});};
+    wrap.append(nb);
+  }
+  return wrap;
+}
+
+function renderChat(){
+  const wrap=el('div',null,null);wrap.style.cssText='display:flex;flex-direction:column;height:100%';
+  const jh=el('div','jhead');
+  jh.innerHTML='<div class="jav">🎩</div><div><div class="jname">JOTARO KUJO</div><div class="jtitle">POKER SENSEI — PART 3</div></div><span class="badge bg" style="margin-left:auto">LOCAL</span>';
+  const chat=el('div','chat');
+  state.msgs.forEach(m=>{
+    const b=el('div',m.r==='j'?'msg mj':m.r==='u'?'msg mu':'msg ml');
+    b.innerHTML=fmtMsg(m.t);
+    chat.append(b);
+  });
+  const QUICK=['What should I do now?','Good starting hands?','Explain pot odds','When to bluff?','What is position?','How do blinds work?'];
+  const qbtns=el('div','qbtns');
+  QUICK.forEach(q=>{const b=el('button','qb',q);b.onclick=()=>sendMsg(q);qbtns.append(b);});
+  const carea=el('div','carea');
+  const inp=el('input','cinput');
+  inp.type='text';
+  inp.placeholder='Ask Jotaro about poker...';
+  inp.value=state.input;
+  if(state.loading)inp.disabled=true;
+
+  const sb=el('button','sbtn','ORA');
+  sb.type='button';
+
+  const updateSendButton=()=>{
+    sb.disabled=state.loading||!inp.value.trim();
+  };
+  const submitChat=()=>{
+    const text=inp.value.trim();
+    if(!text||state.loading)return;
+    state.input=text;
+    updateSendButton();
+    sendMsg(text);
+  };
+
+  inp.oninput=e=>{
+    state.input=e.target.value;
+    updateSendButton();
+  };
+  inp.onkeydown=e=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      submitChat();
+    }
+  };
+  sb.onclick=submitChat;
+  updateSendButton();
+  carea.append(inp,sb);
+  wrap.append(jh,chat,qbtns,carea);
+  setTimeout(()=>chat.scrollTop=chat.scrollHeight,0);
+  return wrap;
+}
+
+// ─── MAIN RENDER ─────────────────────────────────────────────────────
+function render(){
+  const app=document.getElementById('app');app.innerHTML='';
+
+  // Title
+  const tb=el('div','title-bar');
+  tb.innerHTML='<div><div class="t1">YARE YARE POKER</div><div class="t2">TEXAS HOLD\'EM — JOJO\'S BIZARRE ADVENTURE</div></div><div class="star"><span>★</span></div>';
+  app.append(tb);
+
+  // Nav
+  const nav=el('div','nav');
+  ['HAND RANKINGS','HOW TO PLAY','STRATEGY','QUIZ','SIMULATOR'].forEach((t,i)=>{
+    const b=el('button','ntab'+(state.tab===i?' on':''),t);b.onclick=()=>set({tab:i});nav.append(b);
+  });
+  app.append(nav);
+
+  // Layout
+  const layout=el('div','layout');
+  const main=el('div','main');
+  if(state.tab===0)main.append(renderHands());
+  else if(state.tab===1)main.append(renderStages());
+  else if(state.tab===2)main.append(renderStrategy());
+  else if(state.tab===3)main.append(renderQuiz());
+  else main.append(renderSimulator());
+
+  const side=el('div','side');side.append(renderChat());
+  layout.append(main,side);app.append(layout);
+}
+
+render();
+</script>
+</body>
+</html>
